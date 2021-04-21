@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "0",
+    "hash" : "1536397836",
     "id" : "5513D59E",
-    "lastKnownWriteTime" : 1618826883,
-    "last_content_update" : 1618826883380,
+    "lastKnownWriteTime" : 1619002755,
+    "last_content_update" : 1619002755380,
     "path" : "~/Desktop/OneDrive - Aalborg Universitet/Projekter/P6/bachelorR/Bachelor/bachelordata.R",
     "project_path" : "bachelordata.R",
     "properties" : {
-        "cursorPosition" : "28,16",
-        "scrollLine" : "18"
+        "cursorPosition" : "38,0",
+        "scrollLine" : "0"
     },
     "read_only" : false,
     "read_only_alternatives" : [
