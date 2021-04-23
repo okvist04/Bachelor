@@ -2,18 +2,18 @@
     "collab_server" : "",
     "contents" : "",
     "created" : 1618476174557.000,
-    "dirty" : false,
+    "dirty" : true,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1536397836",
+    "hash" : "2789417182",
     "id" : "5513D59E",
-    "lastKnownWriteTime" : 1619002755,
-    "last_content_update" : 1619002755380,
+    "lastKnownWriteTime" : 1619161883,
+    "last_content_update" : 1619165158862,
     "path" : "~/Desktop/OneDrive - Aalborg Universitet/Projekter/P6/bachelorR/Bachelor/bachelordata.R",
     "project_path" : "bachelordata.R",
     "properties" : {
-        "cursorPosition" : "38,0",
-        "scrollLine" : "0"
+        "cursorPosition" : "13,0",
+        "scrollLine" : "34"
     },
     "read_only" : false,
     "read_only_alternatives" : [

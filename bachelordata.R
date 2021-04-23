@@ -3,9 +3,18 @@ library(astsa)
 library(TSA)
 library(tseries)
 library(forecast)
+library(fGarch)
+library(ggplot2)
 
 Bitcoin_data <- read.table("BitcoinDataCoinDesk.csv", header = TRUE, sep = ",", 
                            stringsAsFactors = FALSE)
+head(Bitcoin_data$Date)
+Bitcoin_data$Date <- as.Date(Bitcoin_data$Date, format = "%Y-%m-%d")
+ggplot(data = Bitcoin_data, aes(x = Date, y = Closing.Price..USD.)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  labs(title = "Total daily precipitation in Boulder, Colorado",
+       subtitle = "Fall 2013",
+       x = "Date", y = "Daily Precipitation (Inches)")
 
 closing_price <- Bitcoin_data[,3]
 
@@ -31,14 +40,3 @@ acf2(logprice.df) #The ACF and PACF for the first difference of the logged price
 
 fit <- auto.arima(logprice.df) #R's build-in function, to estimate the order of the ARMA model
 #Hence, the model should be an ARMA(3,2).
-
-
-
-
-
-
-#plot(forecast, xlim = c(2000, 3500))
-#fit1 <- auto.arima(logprice); fit1
-#plot(fit1)
-#forecast1 <- forecast(fit1, h = 100) 
-#plot(forecast1, xlim = c(2000, 4500))
