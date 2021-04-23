@@ -57,7 +57,13 @@ fit <- auto.arima(logreturn) #R's build-in function, to estimate the order of th
 summary(fit)
 ARMA <- arima(logreturn, order = c(3,0,2))
 summary(ARMA)
+<<<<<<< HEAD
 
 arma.model <- specify(ar = c(1.1751, -0.2757, 0.0335), ma = c(-1.2092, 0.2991))
 check(arma.model) #The given model is both causal and invetible 
 
+=======
+arma.model <- specify(ar = c(1.1751, -0.2757, 0.0335), ma = c(-1.2092, 0.2991))
+check(arma.model) #The given model is both causal and invetible 
+
+>>>>>>> daf7003704f88a91259160c3902fdbd9eed05fcd

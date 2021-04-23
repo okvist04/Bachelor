@@ -6,11 +6,21 @@ library(tseries)
 library(forecast)
 library(fGarch)
 library(ggplot2)
+<<<<<<< HEAD
 library(itsmr)
 library(zoo)
+=======
+>>>>>>> daf7003704f88a91259160c3902fdbd9eed05fcd
 
 BTC.df <- read.table("BitcoinDataCoinDesk.csv", header = TRUE, sep = ",", 
                            stringsAsFactors = FALSE)
+head(Bitcoin_data$Date)
+Bitcoin_data$Date <- as.Date(Bitcoin_data$Date, format = "%Y-%m-%d")
+ggplot(data = Bitcoin_data, aes(x = Date, y = Closing.Price..USD.)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  labs(title = "Total daily precipitation in Boulder, Colorado",
+       subtitle = "Fall 2013",
+       x = "Date", y = "Daily Precipitation (Inches)")
 
 Bitcoin_data <- zoo(BTC.df, seq(from = as.Date("2013-10-01"), to = as.Date("2021-04-19"), by = 1))
 
@@ -54,6 +64,7 @@ pacf(logreturn)
 
 fit <- auto.arima(logreturn) #R's build-in function, to estimate the order of the ARMA model
 #Hence, the model should be an ARMA(3,2).
+<<<<<<< HEAD
 summary(fit)
 ARMA <- arima(logreturn, order = c(3,0,2))
 summary(ARMA)
@@ -61,3 +72,5 @@ summary(ARMA)
 arma.model <- specify(ar = c(1.1751, -0.2757, 0.0335), ma = c(-1.2092, 0.2991))
 check(arma.model) #The given model is both causal and invetible 
 
+=======
+>>>>>>> daf7003704f88a91259160c3902fdbd9eed05fcd
