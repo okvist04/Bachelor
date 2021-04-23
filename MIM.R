@@ -1,4 +1,4 @@
-Bitcoin_data <- read.table("BitcoinDataCoinDesk.csv", header = TRUE, sep = ",", 
+Bitcoin_data1 <- read.table("BitcoinDataCoinDesk.csv", header = TRUE, sep = ",", 
                            stringsAsFactors = FALSE)
 
 closing_price <- as.ts(Bitcoin_data[,3])

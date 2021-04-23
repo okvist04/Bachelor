@@ -5,14 +5,14 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1536397836",
+    "hash" : "0",
     "id" : "5513D59E",
-    "lastKnownWriteTime" : 1619002755,
-    "last_content_update" : 1619002755380,
+    "lastKnownWriteTime" : 1619165297,
+    "last_content_update" : 1619165297295,
     "path" : "~/Desktop/OneDrive - Aalborg Universitet/Projekter/P6/bachelorR/Bachelor/bachelordata.R",
     "project_path" : "bachelordata.R",
     "properties" : {
-        "cursorPosition" : "38,0",
+        "cursorPosition" : "15,0",
         "scrollLine" : "0"
     },
     "read_only" : false,
