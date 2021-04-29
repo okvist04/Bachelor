@@ -4,12 +4,14 @@ Bitcoin_data1 <- read.table("BitcoinDataCoinDesk.csv", header = TRUE, sep = ",",
 closing_price <- as.ts(Bitcoin_data[,3])
 log.return <- diff(log(closing_price))
 
-model <- auto.arima(log.return) #R's build-in function, to estimate the order of the ARMA model
+model <- auto.arima(log.return)
+model#R's build-in function, to estimate the order of the ARMA model
 #Hence, the model should be an ARMA(3,2).
 AR <- c(model$coef[1:3]) #AR coefficients from the ARMA(3,2) model.
 MA <- c(model$coef[4:5]) #MA coefficients from the ARMA(3,2) model.
 ARMAtoAR(ar = AR, ma = MA) #AR(20)
 arima1 <- arima(log.return, order = c(20,0,0)) #Simulating the AR(20) model. 
+
 arima1$coef
 comat <- arima1$var.coef
 U <- chol(comat)
@@ -19,8 +21,7 @@ beta.stand <- L.inv %*% arima1$coef
 mean(beta.stand)
 MIM <- (sum(abs(beta.stand)))/(1+sum(abs(beta.stand))) #MIM value is 0.967, indicating a very 
 #inefficient market. 
-
-
+MIM
 
 #IS THIS EVEN RIGHT?????????
 summary(fit)
@@ -74,3 +75,7 @@ model <- lm(log.return[2743] ~ 0.034*log.return[2742] + 0.018*log.return[2741] -
             - 0.011*log.return[2730] - 0.009*log.return[2729] - 0.008*log.return[2728] 
             - 0.007*log.return[2727] - 0.006*log.return[2726] - 0.005*log.return[2725] 
             - 0.004*log.return[2724] - 0.004*log.return[2723], data = log.return)
+
+
+------------------------------------------------------------------------------------------------
+  
