@@ -759,3 +759,36 @@ AMIM <- rbind(AMIM1, AMIM2, AMIM3, AMIM4, AMIM5, AMIM6, AMIM7, AMIM8, AMIM9)
 
 plot(y = AMIM, x = years, type = "l", 
      main = "Yearly AMIM", xlab = "Years"); abline(h = 0, col = "blue", lty = 3)
+
+
+residual.analysis <- function(model, std = TRUE, start = 2, class = c("ARIMA","GARCH","ARMA-GARCH")[1]){
+        library(TSA)
+        library(FitAR)
+        if (class == "ARIMA"){
+                if (std == TRUE){
+                        res.model = rstandard(model)
+                }else{
+                        res.model = residuals(model)
+                }
+        }else if (class == "GARCH"){
+                res.model = model$residuals[start:model$n.used]
+        }else if (class == "ARMA-GARCH"){
+                res.model = model@fit$residuals
+        }else {
+                stop("The argument 'class' must be either 'ARIMA' or 'GARCH' ")
+        }
+        par(mfrow = c(3,2))
+        plot(res.model, type = 'o', ylab = 'Standardized Residuals', 
+             main = "Time Series plot of Standardized Residuals")
+        abline(h = 0)
+        hist(res.model, main = "Histogram of Standardized Residuals")
+        acf(res.model, main = "ACF of Standardized Residuals")
+        pacf(res.model, main = "PACF of Standardized Residuals")
+        qqnorm(res.model, main = "QQ plot of Standardized Residuals")
+        qqline(res.model, col = 2)
+        print(shapiro.test(res.model))
+        k = 0
+        LBQPlot(res.model, lag.max = 30, StartLag = k + 1, k = 0, SquaredQ = FALSE)
+}
+residual.analysis(arma.mod, std = TRUE, start = 1) 
+# Shapiro-Wilk normality test rejects the normality assumption

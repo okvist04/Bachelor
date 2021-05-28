@@ -1,23 +1,41 @@
+library(arfima); library(astsa); library(fGarch); library(FitAR); library(forecast)
+library(fUnitRoots); library(ie2misc); library(itsmr); library(lmtest); library(MLmetrics)
+library(rmgarch); library(timeDate); library(timeSeries); library(TSA); library(tseries)
+library(zoo); library(xts); library(RColorBrewer)
+
 Bitcoin_df<- read.table("BitcoinDataCoinDesk.csv", header = TRUE, sep = ",", 
                         stringsAsFactors = FALSE)
 
 dates <- as.Date(Bitcoin_df$Date)
 td <- seq(as.Date("2013-10-01"), as.Date("2021-04-19"), "days")
+
 closing_price <- zoo(x = Bitcoin_df$Closing.Price..USD., order.by = td)
 
 return <- diff(closing_price) / closing_price[1:2757]
 
+td.years <- seq(as.Date("2013-10-01"), as.Date("2021-10-01"), "years")
+plot(return, ylab = "", xlab = "", col = "#FFCC00", xaxt = "n",
+     main = "Returns 02/10/2013 - 18/04/2021")
+axis.Date(1, at = td.years, format = "%Y")
+
 arma.mod <- auto.arima(return, approximation = FALSE, stepwise = FALSE, allowmean = FALSE, 
                        allowdrift = FALSE); coeftest(arma.mod) # ARMA(4,1)
 
+# Checking it the found ARMA model is causal and invertible
+autoplot(arma.mod) # Causal and invertible
+
 ar.mod <- ar.mle(return, aic = TRUE, order.max = NULL, intercept = TRUE) # AR(10)
 
+# Checking it the found AR model is causal and invertible
+autoplot(ar.mod) # Causal
+
 # Calculating the accuracy of the models, first for the auto.arima the for ar.mle
-accuracy(fitted(arma.mod), return)
 MSE(fitted(arma.mod), return)
+accuracy(fitted(arma.mod), return)
 
 # Calculating the fitted values, and finding the accuracy
 fitted.ar.mod <- ts(return[11:2756] - ar.mod$resid[11:2756])
+
 MSE(fitted.ar.mod, return[11:2756])
 accuracy(fitted.ar.mod, return[11:2756])
 
@@ -44,48 +62,18 @@ par(mfrow = c(1,1))
 plot(arma.forecast, xaxt = "n", main = "10 Days ahead Forecast, ARMA(4,1)", xlim = c(18300, 18733))
 lines(tendaysahead.return, type = "l", col = "green", 
       lty = 2); axis.Date(1, at = t.all, format= "%m/%Y", las = 2)
-legend("bottomleft", legend = c("Actual Returns 20/2 - 19/4/21", 
-                                "Forecast", "Actual Returns 20/4/21 - 29/4/21"),
+legend("topleft", legend = c("Actual Returns 20/02 - 18/04/21", 
+                                "Forecast", "Actual Returns 20/04/21 - 28/04/21"),
        col = c("black", "steelblue", "green"), lty = c(1,1,2), cex = 0.55, box.lty = 0)
-
-residual.analysis <- function(model, std = TRUE, start = 2, class = c("ARIMA","GARCH","ARMA-GARCH")[1]){
-        library(TSA)
-        library(FitAR)
-        if (class == "ARIMA"){
-                if (std == TRUE){
-                        res.model = rstandard(model)
-                }else{
-                        res.model = residuals(model)
-                }
-        }else if (class == "GARCH"){
-                res.model = model$residuals[start:model$n.used]
-        }else if (class == "ARMA-GARCH"){
-                res.model = model@fit$residuals
-        }else {
-                stop("The argument 'class' must be either 'ARIMA' or 'GARCH' ")
-        }
-        par(mfrow = c(3,2))
-        plot(res.model, type = 'o', ylab = 'Standardized Residuals', 
-             main = "Time Series plot of Standardized Residuals")
-        abline(h = 0)
-        hist(res.model, main = "Histogram of Standardized Residuals")
-        acf(res.model, main = "ACF of Standardized Residuals")
-        pacf(res.model, main = "PACF of Standardized Residuals")
-        qqnorm(res.model, main = "QQ plot of Standardized Residuals")
-        qqline(res.model, col = 2)
-        print(shapiro.test(res.model))
-        k = 0
-        LBQPlot(res.model, lag.max = 30, StartLag = k + 1, k = 0, SquaredQ = FALSE)
-}
-residual.analysis(arma.mod, std = TRUE, start = 1) 
-# Shapiro-Wilk normality test rejects the normality assumption
 
 par(mfrow = c(1,1))
 McLeod.Li.test(arma.mod, main = "McLeod-Li test statistics for Returns") 
 # Shows signs of conditional heteroskedasticity
 
-abs.return <- abs(return); acf2(abs.return) # Shows signs of ARCH effect
-sqr.return <- return^2; acf2(sqr.return) # Shows signs of ARCH effect
+abs.return <- abs(return)
+acf(abs.return, main = "Absolute Value of Returns") # Shows signs of ARCH effect
+sqr.return <- return^2
+acf(sqr.return) # Shows signs of ARCH effect
 
 # ARMA(3,2)-GARCH(4,2) lowest BIC = -3.77051
 arma32.garch42 <- ugarchspec(variance.model = list(model = "sGARCH", garchOrder = c(4,2)),
@@ -100,18 +88,13 @@ arma32.garch42.fit
 # Ljung-Box Test shows that the null hypothesis is accepted for GARCH part, 
 # but not for no serial correlation
 
-# Checking goodness of fit for mean and variance prediction, and for the distribution
-e <- residuals(arma32.garch42.fit); mean(e^2) # = 0.00187
-d <- e^2 - sigma(arma32.garch42.fit)^2; mean(d^2) # = 4.0661e-05
-likelihood(arma32.garch42.fit) # = 5,058.484
-
 par(mfrow = c(1,1))
 # Observing if the above conclusion is correct 
 stand.res <- residuals(arma32.garch42.fit, standardize = TRUE)
-acf(stand.res, main = "Standardized Residuals")
+acf(stand.res, main = "Standardised Residuals")
 
 sqr.stand.res <- stand.res^2
-acf(sqr.stand.res, main = "Squared Standardized Residuals")
+acf(sqr.stand.res, main = "Squared Standardised Residuals")
 
 # Calculating the accuracy of the model 
 MSE(arma32.garch42.fit@fit$fitted.values, return)
@@ -121,24 +104,7 @@ accuracy(arma32.garch42.fit@fit$fitted.values, return[2656:2757])
 forecast_arma32garch42 <- ugarchforecast(arma32.garch42.fit, 
                                          data = return, n.ahead = 10, n.roll = 100)
 print(forecast_arma32garch42)
-plot(forecast_arma32garch42)
-
-######################################################################################
-# Based on AMIM value, a model is made based on the whole data
-######################################################################################
-ar10.all <- ar.mle(return, aic = TRUE, order.max = NULL, intercept = TRUE); ar10.all
-
-fitted.ar10.mod <- ts(return[11:2756] - ar10.all$resid[11:2756])
-
-MSE(fitted.ar10.mod, return[11:2756])
-accuracy(fitted.ar10.mod, return[11:2756])
-
-ar10.forecast <- forecast::forecast(ar10.all, h = 10, level = c(80,95))
-plot(ar10.forecast, xaxt = "n", main = "10 Days ahead Forecast, AR(10)")
-lines(tendaysahead.return, type = "l", 
-      col = "green", lty = 2); axis.Date(1, at = t.2015, format= "%m/%Y", las = 2)
-legend("bottomleft", legend = c("Actual, 2015", "Forecast", "Actual, 2016"),
-       col = c("black", "steelblue", "green"), lty = c(1,1,2), cex = 0.55, box.lty = 0)
+plot(forecast_arma32garch42, which = "all")
 
 ######################################################################################
 # Based on AMIM value, the models are made based on the inefficient years, i.e., 2014 & 2015
@@ -155,7 +121,13 @@ return2014 <- return[92:456]
 arma.mod2014 <- auto.arima(return2014, approximation = FALSE, stepwise = FALSE, allowmean = FALSE, 
                        allowdrift = FALSE); coeftest(arma.mod2014) # AR(2)
 
+# Checking it the found AR model is causal and invertible
+autoplot(arma.mod2014) # Causal
+
 ar.mod2014 <- ar.mle(return2014, aic = TRUE, order.max = NULL, intercept = TRUE) #AR(2)
+
+# Checking it the found AR model is causal and invertible
+autoplot(ar.mod2014) # Causal
 
 # Calculating the accuracy of both models, first from auto.arima then from ar.mle
 MSE(fitted(arma.mod2014), return2014)
@@ -164,12 +136,15 @@ accuracy(fitted(arma.mod2014), return2014)
 MSE(fitted(ar.mod2014)[3:365], return2014[3:365])
 accuracy(fitted(ar.mod2014)[3:365], return2014[3:365])
 
-residual.analysis(arma.mod2014, std = TRUE, start = 1) 
-# Shapiro-Wilk normality test rejects the normality assumption
+checkresiduals(arma.mod2014) 
+checkresiduals(ar.mod2014); Box.test(residuals(ar.mod2014), type = "Ljung-Box")
+# The residuals are indeed white noise.
 
-t.2014 <- seq(as.Date("2014-01-01"), by = "month", along.with = c(return2014, return[457:821]))
+t.2014 <- seq(as.Date("2014-01-01"), by = "month", 
+              along.with = c(return2014, return[457:821]))
         
 par(mfrow = c(1,1))
+
 # Forecasting based on ARMA(2,0,0), auto.arima
 arma.forecast2014 <- forecast::forecast(arma.mod2014, h = 10, level = c(80,95))
 plot(arma.forecast2014, xaxt = "n", main = "10 Days ahead Forecast, AR(2)")
@@ -196,7 +171,8 @@ arma24.garch11.fit <- ugarchfit(spec = arma24.garch11, data = return2014, out.sa
 
 plot(arma24.garch11.fit, which = "all")
 arma24.garch11.fit 
-# Ljung-Box Test shows that the null hypothesis is accepted for both no serial correlation and ARCH
+# Ljung-Box Test shows that the null hypothesis is accepted for 
+# both no serial correlation and ARCH
 
 # Observing if the above conclusion is correct 
 stand.res.14 <- residuals(arma24.garch11.fit, standardize = TRUE)
@@ -217,14 +193,20 @@ plot(forecast_arma24garch11, which = "all")
 
 ######################################################################################
 # ARMA-GARCH model for 2015, static and rolling forecast
-# Based on BIC, the best model is ARMA(1,1)-GARCH(3,3), BIC = -4.068104
+# Based on BIC, the best model is ARMA(3,3)-GARCH(1,1), BIC = -4.068104
 ######################################################################################
 return2015 <- return[457:821]
 
 arma.mod2015 <- auto.arima(return2015, approximation = FALSE, stepwise = FALSE, allowmean = FALSE, 
                            allowdrift = FALSE); coeftest(arma.mod2015) # AR(5)
 
+# Checking it the found AR model is causal and invertible
+autoplot(arma.mod2015) # Causal
+
 ar.mod2015 <- ar.mle(return2015, aic = TRUE, order.max = NULL, intercept = TRUE) # AR(8)
+
+# Checking it the found AR model is causal and invertible
+autoplot(ar.mod2015) # Causal
 
 # Calculating the accuracy of both models, first from auto.arima then from ar.mle
 MSE(fitted(arma.mod2015), return2015)
@@ -233,8 +215,9 @@ accuracy(fitted(arma.mod2015), return2015)
 MSE(fitted(ar.mod2015)[9:365], return2015[9:365])
 accuracy(fitted(ar.mod2015)[9:365], return2015[9:365])
 
-residual.analysis(arma.mod2015, std = TRUE, start = 1) 
-# Shapiro-Wilk normality test rejects the normality assumption
+checkresiduals(arma.mod2015) 
+checkresiduals(ar.mod2015); Box.test(residuals(ar.mod2015), type = "Ljung-Box")
+# The residuals are white noise
 
 t.2015 <- seq(as.Date("2015-01-01"), by = "month", along.with = c(return2015, return[822:1187]))
 
@@ -269,7 +252,8 @@ arma33.garch11.fit <- ugarchfit(spec = arma33.garch11, data = return2015, out.sa
 
 plot(arma33.garch11.fit, which = "all")
 arma33.garch11.fit 
-# Ljung-Box Test shows that the null hypothesis is accepted for both no serial correlation and ARCH
+# Ljung-Box Test shows that the null hypothesis is 
+# accepted for both no serial correlation and ARCH
 
 # Observing if the above conclusion is correct 
 stand.res.15 <- residuals(arma33.garch11.fit, standardize = TRUE)
@@ -306,7 +290,13 @@ oct2018 <- window(return, start = as.Date("2018-10-01"), end = as.Date("2018-10-
 arma.oct2016 <- auto.arima(oct2016, trace = TRUE, stepwise = FALSE, approximation = FALSE,
                            allowmean = FALSE, allowdrift = FALSE) # ARMA(0,0,0)
 
+# Checking it the found ARMA model is causal and invertible
+autoplot(arma.oct2016) # No roots
+
 ar.oct2016 <- ar.mle(oct2016, aic = TRUE, order.max = NULL, intercept = TRUE) # AR(11)
+
+# Checking it the found AR model is causal and invertible
+autoplot(ar.oct2016) # Causal
 
 # Calculating the accuracy of both models, first from auto.arima then from ar.mle
 MSE(fitted(arma.oct2016), oct2016)
@@ -315,8 +305,10 @@ accuracy(fitted(arma.oct2016), oct2016)
 MSE(fitted(ar.oct2016)[12:31], oct2016[12:31])
 accuracy(fitted(ar.oct2016)[12:31], oct2016[12:31])
 
-residual.analysis(arma.oct2016, std = TRUE, start = 1) 
-# Shapiro-Wilk normality test rejects the normality assumption
+# Checking if the residuals are white noise
+checkresiduals(arma.oct2016) 
+checkresiduals(ar.oct2016); Box.test(residuals(ar.oct2016), type = "Ljung-Box")
+# White noise
 
 par(mfrow = c(1,1))
 McLeod.Li.test(arma.oct2016, main = "McLeod-Li test statistics for Returns Oct. 2016")
@@ -348,8 +340,14 @@ arma.may2018 <- auto.arima(may2018, trace = TRUE, stepwise = FALSE, approximatio
                               allowmean = FALSE, allowdrift = FALSE, ic = "aic"); coeftest(arma.may2018)
 #MA(3), ma1 = 0.0375, ma2 = 0.321, ma3 = -0.4121
 
+# Checking it the found AR model is causal and invertible
+autoplot(arma.may2018) # Invertible
+
 ar.may2018 <- ar.mle(may2018, aic = TRUE, order.max = NULL, intercept = TRUE) 
 #AR(3), ar1 = -0.1247, ar2 = 0.1467, ar3 = -0.3265
+
+# Checking it the found AR model is causal and invertible
+autoplot(ar.may2018) # Causal
 
 # Calculating the accuracy of both models, first from auto.arima then from ar.mle
 MSE(fitted(arma.may2018), may2018)
@@ -358,8 +356,10 @@ accuracy(fitted(arma.may2018), may2018)
 MSE(fitted(ar.may2018)[4:31], may2018[4:31])
 accuracy(fitted(ar.may2018)[4:31], may2018[4:31])
 
-residual.analysis(arma.may2018, std = TRUE, start = 1) 
-# Shapiro-Wilk normality test rejects the normality assumption
+# Checking if residuals are white noise.
+checkresiduals(arma.may2018) 
+checkresiduals(ar.may2018); Box.test(residuals(ar.may2018), type = "Ljung-Box")
+# White noise 
 
 par(mfrow = c(1,1))
 # Testing for GARCH effect
@@ -393,8 +393,14 @@ arma.sep2018 <- auto.arima(sep2018, trace = TRUE, stepwise = FALSE, approximatio
                            allowmean = FALSE, allowdrift = FALSE, ic = "aic"); coeftest(arma.sep2018)
 #MA(3), ma1 = 0.5281156, ma2 = 0.3158695, ma3 = 0.6554238
 
+# Checking it the found AR model is causal and invertible
+autoplot(arma.sep2018) # Invertible
+
 ar.sep2018 <- ar.mle(sep2018, aic = TRUE, order.max = NULL, intercept = TRUE) 
 #AR(4), ar1 = 0.2689, ar2 = 0.0880, ar3 = 0.2644, ar4 = -0.5190
+
+# Checking it the found AR model is causal and invertible
+autoplot(ar.sep2018) # Causal 
 
 # Calculating the accuracy of both models, first from auto.arima then from ar.mle
 MSE(fitted(arma.sep2018), sep2018)
@@ -403,8 +409,10 @@ accuracy(fitted(arma.sep2018), sep2018)
 MSE(fitted(ar.sep2018)[5:30], sep2018[5:30])
 accuracy(fitted(ar.sep2018)[5:30], sep2018[5:30])
 
-residual.analysis(arma.sep2018, std = TRUE, start = 1) 
-# Shapiro-Wilk normality test rejects the normality assumption
+# Checking the residuals
+checkresiduals(arma.sep2018) 
+checkresiduals(ar.sep2018); Box.test(residuals(ar.sep2018), type = "Ljung-Box")
+# White noise
 
 par(mfrow = c(1,1))
 # Testing for GARCH effecit
