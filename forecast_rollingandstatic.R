@@ -439,4 +439,34 @@ legend("topleft", legend = c("Actual, Sep 18", "Forecast", "Actual, Oct 18"),
        col = c("black", "steelblue", "green"), lty = c(1,1,2), cex = 0.55, box.lty = 0)
 
 
+#############################################################
+# Constant models accuracy
+#############################################################
+
+constant.all <- auto.arima(y = return, d = NA, D = NA, max.p = 0, max.q = 0, max.order = 0)
+MSE(constant.all$fitted, return) #0.00188
+accuracy(constant.all$fitted, return) #RMSE = 0.0434, MAE = 0.0274
+
+constant.2014 <- auto.arima(y = return2014, d = NA, D = NA, max.p = 0, max.q = 0, max.order = 0)
+MSE(constant.2014$fitted, return2014)
+accuracy(constant.2014$fitted, return2014)
+
+constant.2015 <- auto.arima(y = return2015, d = NA, D = NA, max.p = 0, max.q = 0, max.order = 0)
+MSE(constant.2015$fitted, return2015)
+accuracy(constant.2015$fitted, return2015)
+
+constant.oct16 <- auto.arima(y = oct2016, d = NA, D = NA, max.p = 0, max.q = 0, max.order = 0)
+MSE(constant.oct16$fitted, oct2016)
+accuracy(constant.oct16$fitted, oct2016)
+
+constant.may18 <- auto.arima(y = may2018, d = NA, D = NA, max.p = 0, max.q = 0, max.order = 0)
+MSE(constant.may18$fitted, may2018)
+accuracy(constant.may18$fitted, may2018)
+
+constant.sep18 <- auto.arima(y = sep2018, d = NA, D = NA, max.p = 0, max.q = 0, max.order = 0)
+MSE(constant.sep18$fitted, sep2018)
+accuracy(constant.sep18$fitted, sep2018)
+
+
+
 
